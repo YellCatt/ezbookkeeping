@@ -23,7 +23,7 @@ jobs:
             ext: ''
             goflags: 'CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat'
             ldflags: '-s -w -extldflags=-static'
-            tags: 'netgo,osusergo'          # ← 修复：逗号分隔
+            tags: 'netgo,osusergo'
             cross_compiler: ''
             needs_frontend: true
           - runner: windows-latest
@@ -89,15 +89,19 @@ jobs:
         COMMIT_HASH=$(git rev-parse --short=7 HEAD)
         BUILD_UNIXTIME=$(date '+%s')
 
-        TAGS_ARG=""
+        # 使用 bash 数组构建参数，彻底避免空参数问题
+        BUILD_ARGS=(-a -v -trimpath)
+        BUILD_ARGS+=(-ldflags="${{ matrix.target.ldflags }} -X main.Version=$VERSION -X main.CommitHash=$COMMIT_HASH -X main.BuildUnixTime=$BUILD_UNIXTIME")
+
         if [ -n "${{ matrix.target.tags }}" ]; then
-          TAGS_ARG="-tags=${{ matrix.target.tags }}"
+          BUILD_ARGS+=(-tags="${{ matrix.target.tags }}")
         fi
 
-        ${{ matrix.target.goflags }} go build -a -v -trimpath \
-          -ldflags="${{ matrix.target.ldflags }} -X main.Version=$VERSION -X main.CommitHash=$COMMIT_HASH -X main.BuildUnixTime=$BUILD_UNIXTIME" \
-          "$TAGS_ARG" \                       # ← 修复：加双引号
-          -o ezbookkeeping${{ matrix.target.ext }} ezbookkeeping.go
+        BUILD_ARGS+=(-o "ezbookkeeping${{ matrix.target.ext }}")
+        BUILD_ARGS+=("ezbookkeeping.go")
+
+        echo "Building with args: ${BUILD_ARGS[@]}"
+        ${{ matrix.target.goflags }} go build "${BUILD_ARGS[@]}"
 
         ls -la ezbookkeeping*
 
