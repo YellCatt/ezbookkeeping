@@ -23,7 +23,7 @@ jobs:
             ext: ''
             goflags: 'CGO_ENABLED=0 GOOS=linux GOARCH=mipsle GOMIPS=softfloat'
             ldflags: '-s -w -extldflags=-static'
-            tags: 'netgo osusergo'
+            tags: 'netgo,osusergo'          # ← 修复：逗号分隔
             cross_compiler: ''
             needs_frontend: true
           - runner: windows-latest
@@ -96,7 +96,7 @@ jobs:
 
         ${{ matrix.target.goflags }} go build -a -v -trimpath \
           -ldflags="${{ matrix.target.ldflags }} -X main.Version=$VERSION -X main.CommitHash=$COMMIT_HASH -X main.BuildUnixTime=$BUILD_UNIXTIME" \
-          $TAGS_ARG \
+          "$TAGS_ARG" \                       # ← 修复：加双引号
           -o ezbookkeeping${{ matrix.target.ext }} ezbookkeeping.go
 
         ls -la ezbookkeeping*
