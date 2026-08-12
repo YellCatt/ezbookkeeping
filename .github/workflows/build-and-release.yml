@@ -181,7 +181,8 @@ jobs:
               chmod +x $PKG_DIR/ezbookkeeping
             fi
 
-            cp -R artifacts/frontend-dist/dist $PKG_DIR/public
+            # 修复：upload-artifact 下载后文件直接落在 artifacts/frontend-dist/ 下，而非 artifacts/frontend-dist/dist/
+            cp -R artifacts/frontend-dist $PKG_DIR/public
             cp -R conf $PKG_DIR/conf
             cp -R templates $PKG_DIR/templates
             cp LICENSE $PKG_DIR/
